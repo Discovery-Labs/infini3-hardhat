@@ -1,7 +1,7 @@
 {
-  "name": "@scaffold-eth/hardhat-ts",
+  "name": "@infini3/hardhat-ts",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "chain": "hardhat node --network hardhat --no-deploy",
     "fork": "hardhat node --fork https://mainnet.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad",
@@ -65,5 +65,27 @@
   },
   "installConfig": {
     "hoistingLimits": "workspaces"
-  }
+  },
+  "description": "infini3 contracts",
+  "main": "hardhat_contracts.json",
+  "directories": {
+    "contracts": "contracts",
+    "subgraph": "subgraph",
+    "types": "generated/contract-types"
+  },
+  "files": [
+    "contracts",
+    "subgraph",
+    "generated/contract-types",
+    "hardhat_contracts.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Discovery-Labs/infini3-hardhat.git"
+  },
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/Discovery-Labs/infini3-hardhat/issues"
+  },
+  "homepage": "https://github.com/Discovery-Labs/infini3-hardhat#readme"
 }
