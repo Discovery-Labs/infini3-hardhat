@@ -5,7 +5,7 @@ import "@balancer-labs/v2-solidity-utils/contracts/helpers/LogCompression.sol";
 import "@balancer-labs/v2-pool-utils/contracts/oracle/PoolPriceOracle.sol";
 
 import "@balancer-labs/v2-pool-weighted/contracts/BaseWeightedPool.sol";
-import "@balancer-labs/v2-pool-weighted/contracts/InvariantGrowthProtocolFees.sol";
+import "./InvariantGrowthProtocolFees.sol";
 
 import "./OracleWeightedMath.sol";
 import "./OracleWeightedPoolMiscData.sol";

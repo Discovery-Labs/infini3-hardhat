@@ -19,6 +19,7 @@ import { HardhatUserConfig, task } from 'hardhat/config';
 import { HttpNetworkUserConfig } from 'hardhat/types';
 import { TEthers } from './helpers/types/hardhat-type-extensions';
 import 'tsconfig-paths/register';
+import 'hardhat-contract-sizer';
 dotenv.config();
 
 declare module 'hardhat/types/runtime' {
@@ -170,6 +171,13 @@ const config: HardhatUserConfig = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: 'PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8',
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: false,
+    only: [],
   },
 };
 export default config;
