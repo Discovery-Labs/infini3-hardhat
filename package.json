@@ -21,6 +21,10 @@
     "hardhat-etherscan": "hardhat verify --network kovan DEPLOYED_CONTRACT_ADDRESS \"Constructor argument 1\" "
   },
   "dependencies": {
+    "@balancer-labs/v2-pool-utils": "^2.0.1",
+    "@balancer-labs/v2-pool-weighted": "^2.0.1",
+    "@balancer-labs/v2-solidity-utils": "^2.0.0",
+    "@balancer-labs/v2-vault": "^2.0.0",
     "@eth-optimism/hardhat-ovm": "^0.2.2",
     "@ethereumjs/vm": "^5.5.3",
     "@ethersproject/providers": "^5.4.1",
