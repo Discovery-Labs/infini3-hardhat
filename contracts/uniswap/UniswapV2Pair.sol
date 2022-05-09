@@ -1,7 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity >=0.5.0;
 
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+//import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+import "./interfaces/IUniswapV2Pair.sol";
 import "@uniswap/v2-core/contracts/UniswapV2ERC20.sol";
 import "@uniswap/v2-core/contracts/libraries/Math.sol";
 import "@uniswap/v2-core/contracts/libraries/UQ112x112.sol";
@@ -9,7 +10,7 @@ import "@uniswap/v2-core/contracts/interfaces/IERC20.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol";
 
-contract UniswapV2PairClones is IUniswapV2Pair, UniswapV2ERC20 {
+contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     using SafeMath  for uint;
     using UQ112x112 for uint224;
 
@@ -17,6 +18,7 @@ contract UniswapV2PairClones is IUniswapV2Pair, UniswapV2ERC20 {
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("transfer(address,uint256)")));
 
     address public factory;
+    address public sponsorSFTAddress;
     address public token0;
     address public token1;
 
@@ -64,9 +66,10 @@ contract UniswapV2PairClones is IUniswapV2Pair, UniswapV2ERC20 {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external {
-        require(factory == address(0), "UniswapV2: FORBIDDEN"); // sufficient check
+    function initialize(address _sponsorSFTAddress, address _token0, address _token1) external {
+        //require(factory == address(0), "UniswapV2: FORBIDDEN"); // sufficient check
         factory = msg.sender;
+        sponsorSFTAddress = _sponsorSFTAddress;
         token0 = _token0;
         token1 = _token1;
     }
