@@ -76,7 +76,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
         token0 = _token0;
         token1 = _token1;
         projectId = _projectId;
-        (bool success, bytes memory data) = sponsorSFTAddress.call(abi.encodeWithSelector(bytes4("adventureNFTAddress()")));
+        (bool success, bytes memory data) = sponsorSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("adventureNFTAddress()"))));
         require(bool);
         address _adventureNFTAddress = abi.decode(data, (address));
         require(_adventureNFTAddress != address(0), "UniswapDComp: NO_ADVENTURE_ADDRESS");
@@ -123,6 +123,10 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
+        (bool success, bytes memory data) = adventureNFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
+        require(bool, "UniswapDComp: UNSUCCESSFUL_CALL");
+        success = abi.decode(data, (bool));
+        require(success, "UniswapDComp: NOT_PROJECT_HOLDER");
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
