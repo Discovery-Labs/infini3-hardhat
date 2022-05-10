@@ -19,8 +19,10 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     address public factory;
     address public sponsorSFTAddress;
+    address public adventureNFTAddress;
     address public token0;
     address public token1;
+    string public projectId;
 
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
@@ -66,12 +68,13 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _sponsorSFTAddress, address _token0, address _token1) external {
+    function initialize(address _sponsorSFTAddress, address _token0, address _token1, string memory _projectId) external {
         //require(factory == address(0), "UniswapV2: FORBIDDEN"); // sufficient check
         factory = msg.sender;
         sponsorSFTAddress = _sponsorSFTAddress;
-        token0 = _token0;
+        token0 = _token0;//should be current DCOMP_ADDR from factory
         token1 = _token1;
+        projectId = _projectId;
     }
 
     // update reserves and, on the first call per block, price accumulators
