@@ -3,13 +3,14 @@ pragma solidity >=0.5.0;
 
 //import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IUniswapV2Pair.sol";
+import "./Initializable.sol";
 import "@uniswap/v2-core/contracts/UniswapV2ERC20.sol";
 import "@uniswap/v2-core/contracts/libraries/Math.sol";
 import "@uniswap/v2-core/contracts/libraries/UQ112x112.sol";
 import "@uniswap/v2-core/contracts/interfaces/IERC20.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     using SafeMath  for uint;
@@ -69,7 +70,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _sponsorSFTAddress, address _token0, address _token1, string memory _projectId) external initializer {
+    function initialize(address _sponsorSFTAddress, address _token0, address _token1, string calldata _projectId) external initializer {
         factory = msg.sender;
         sponsorSFTAddress = _sponsorSFTAddress;
         //one of two tokens below should be dCompToken at time of deployment
@@ -77,7 +78,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
         token1 = _token1;
         projectId = _projectId;
         (bool success, bytes memory data) = sponsorSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("adventureNFTAddress()"))));
-        require(bool);
+        require(success);
         address _adventureNFTAddress = abi.decode(data, (address));
         require(_adventureNFTAddress != address(0), "UniswapDComp: NO_ADVENTURE_ADDRESS");
         adventureNFTAddress = _adventureNFTAddress;
@@ -124,7 +125,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
         (bool success, bytes memory data) = adventureNFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
-        require(bool, "UniswapDComp: UNSUCCESSFUL_CALL");
+        require(success, "UniswapDComp: UNSUCCESSFUL_CALL");
         success = abi.decode(data, (bool));
         require(success, "UniswapDComp: NOT_PROJECT_HOLDER");
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings

@@ -1,12 +1,13 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity >=0.8.0;
+pragma solidity >=0.5.0;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
+//import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 //import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IUniswapV2Pair.sol";
+import "./interfaces/IUniswapV2PairFactory.sol";
 
-contract UniswapV2PairFactory is IUniswapV2Factory {
+contract UniswapV2PairFactory is IUniswapV2PairFactory {
     address public uniswapV2PairImplementation;
     address public sponsorSFTAddress;
     address public dCompTokenAddress;
@@ -25,8 +26,8 @@ contract UniswapV2PairFactory is IUniswapV2Factory {
         dCompTokenAddress = _dCompTokenAddress;
     }
 
-    function allPairsLength() external view override returns (uint) {
-        return allPairs.length;
+    function allPoolsLength() external view override returns (uint) {
+        return allPools.length;
     }
 
     function createPair(address tokenB, string memory projectId) external override returns (address pair) {
@@ -40,8 +41,8 @@ contract UniswapV2PairFactory is IUniswapV2Factory {
         pair = Clones.cloneDeterministic(uniswapV2PairImplementation, salt);
         IUniswapV2Pair(pair).initialize(sponsorSFTAddress, token0, token1, projectId);
         getPoolByProject[projectId] = pair;
-        allPairs.push(pair);
-        emit PairCreated(token0, token1, pair, allPairs.length);
+        allPools.push(pair);
+        emit PairCreated(token0, token1, pair, allPools.length);
     }
 
     function setFeeTo(address _feeTo) external override {
