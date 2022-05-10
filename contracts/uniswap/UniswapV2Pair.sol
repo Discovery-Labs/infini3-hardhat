@@ -72,7 +72,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         //require(factory == address(0), "UniswapV2: FORBIDDEN"); // sufficient check
         factory = msg.sender;
         sponsorSFTAddress = _sponsorSFTAddress;
-        token0 = _token0;//should be current DCOMP_ADDR from factory
+        //one of two tokens below should be dCompToken at time of deployment
+        token0 = _token0;
         token1 = _token1;
         projectId = _projectId;
     }
