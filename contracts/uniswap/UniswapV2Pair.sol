@@ -9,8 +9,9 @@ import "@uniswap/v2-core/contracts/libraries/UQ112x112.sol";
 import "@uniswap/v2-core/contracts/interfaces/IERC20.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
+contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     using SafeMath  for uint;
     using UQ112x112 for uint224;
 
@@ -68,15 +69,20 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _sponsorSFTAddress, address _token0, address _token1, string memory _projectId) external {
-        //require(factory == address(0), "UniswapV2: FORBIDDEN"); // sufficient check
+    function initialize(address _sponsorSFTAddress, address _token0, address _token1, string memory _projectId) external initializer {
         factory = msg.sender;
         sponsorSFTAddress = _sponsorSFTAddress;
         //one of two tokens below should be dCompToken at time of deployment
         token0 = _token0;
         token1 = _token1;
         projectId = _projectId;
-    }
+        (bool success, bytes memory data) = sponsorSFTAddress.call(abi.encodeWithSelector(bytes4("adventureNFTAddress()")));
+        require(bool);
+        address _adventureNFTAddress = abi.decode(data, (address));
+        require(_adventureNFTAddress != address(0), "UniswapDComp: NO_ADVENTURE_ADDRESS");
+        adventureNFTAddress = _adventureNFTAddress;
+    }   
+
 
     // update reserves and, on the first call per block, price accumulators
     function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
