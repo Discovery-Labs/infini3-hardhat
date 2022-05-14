@@ -25,6 +25,7 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     address payable public appWallet;//sign in a script and also withdraw slashed stakes
     address payable appDiamond;//address of the app level diamond
     address payable sponsorSFTAddr;//address of ERC-1155 that controls sponsor staking
+    address public adventureSFTAddr;//address of ERC1155 that controls adventurer SFT
     enum ProjectStatus{ NONEXISTENT, PENDING, DENIED, APPROVED }
     
     mapping (string => address[]) internal contributors;
@@ -131,11 +132,11 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         }
     }
     
-    function createToken(uint32[] memory firstURIParts, uint256[] memory secondURIParts, string memory _projectId) public onlyReviewer returns(uint[] memory){
+    function createToken(uint32[] memory firstURIParts, uint256[] memory secondURIParts, string memory _projectId, uint[] memory versions, uint[] memory prices, uint[] memory maxCaps) public onlyReviewer returns(uint[] memory){
         require(status[_projectId] == ProjectStatus.APPROVED, "job not approved yet");
         require(!projectMinted[_projectId], "already minted");
         require(firstURIParts.length == secondURIParts.length && firstURIParts.length == contributors[_projectId].length, "incorrect arrs");
-
+        require(versions.length > 0 && versions.length == prices.length && versions.length == maxCaps.length, "incorrect arrs");
         //batch minting
         uint256[] memory newItems = new uint256[](contributors[_projectId].length);
         uint256 newItemId;
@@ -151,6 +152,8 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         
         emit NFTProjectMinted(contributors[_projectId][i], _tokenURI, _projectId);
         }
+        projectMinted[_projectId] = true;
+
         //set the approval within app Diamond contract
         (bool success, ) = appDiamond.call(abi.encodeWithSelector(bytes4(keccak256("setApproved(string)")), _projectId));
         require(success, "diamond approval failed");
@@ -159,7 +162,12 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         (success,) = sponsorSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("mint(uint256,address,string)")), sponsorLevel[_projectId], projectWallets[_projectId], _projectId));
         require(success, "sponsor mint failed");
 
-        projectMinted[_projectId] = true;
+        //mint all adventurer SFT versions here
+        for(i=0; i< versions.length; i++){
+            (success,) = adventurerSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("upsertAdventurerNFT(string,uint256,uint256,uint256)")), _projectId, versions[i], prices[i], maxCaps[i]));
+            require(success, "adventurer mint failed");
+        }
+
         return newItems;    
     }
 
@@ -348,4 +356,8 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         return sponsorSFTAddr;
     }
 
+    function setAdventureSFTAddr(address _adventureSFTAddr) external onlyReviewer{
+        require(_adventureSFTAddr != address(0));
+        adventureSFTAddr = _adventureSFTAddr;
+    }
 }

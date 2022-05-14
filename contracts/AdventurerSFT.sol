@@ -74,6 +74,7 @@ contract AdventurerSFT is ERC1155, Ownable {
         AdventurerTokenInfo memory adventureTokenInfo = adventurerTokenInfoByTokenId[tokenId]; 
         require(adventureTokenInfo.maximumCap == 0 || currentSupply < adventureTokenInfo.maximumCap, "ADVENTURER_SFT: CAP_REACHED");
         totalSupplyPerTokenId[tokenId]++;
+        //possibly have specialized transfer function from this contract for dComp token to avoid approval?
         if(adventureTokenInfo.priceInDComp > 0){
             IERC20(dCompTokenAddr).safeTransferFrom(_to, address(this), adventureTokenInfo.priceInDComp);
         }
