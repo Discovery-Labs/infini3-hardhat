@@ -24,7 +24,7 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     uint128 public numReviewers;//number of Reviewers. Needed for threshold calculation
     address payable public appWallet;//sign in a script and also withdraw slashed stakes
     address payable appDiamond;//address of the app level diamond
-    address payable sponsorSFTAddr;//address of ERC-1155 that controls sponsor staking
+    address payable sponsorSFTAddr;//address of ERC1155 that controls sponsor staking
     address public adventureSFTAddr;//address of ERC1155 that controls adventurer SFT
     enum ProjectStatus{ NONEXISTENT, PENDING, DENIED, APPROVED }
     
@@ -40,9 +40,8 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     mapping (string => uint) public votes;//tally of approved votes;
     mapping (string => uint) public votesReject;//tally of rejection votes;
     mapping (string => mapping(address => bool)) public reviewerVotes;//vote record of reviewers for ProjectId
-    //mapping (string => uint16[]) public rarities; // rarities of each image uint16 used for pakcing purposes
     mapping (string => bool) public projectMinted; // tracks if mint has been done
-    mapping (string => uint) public projectThresholds;// threshold for the project contributors to approve courses
+    mapping (string => uint) public projectThresholds;// threshold for the project contributors to approve pathways
     
     event NFTProjectMinted(address indexed _to, string indexed _tokenURI, string indexed _questId);
     event ReceiveCalled(address _caller, uint _value);
@@ -179,19 +178,24 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         (bool success, bytes memory data) = sponsorSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("stakeAmounts(uint256)")), pendingSponsorLevel));
         require(success);
         uint stakeAmount = abi.decode(data, (uint256)); 
-        require (msg.value >= stakeAmount, "not enough staked");
+        require (msg.value == stakeAmount, "not enough staked");
         /*(success, data) = sponsorSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("isAddrOwner(address)")), _projectWallet));
         require(success);
         bool isActive = abi.decode(data, (bool));
         require(!isActive, "address already linked with active project");*/
+        // require(_ERC20Address != address(0));
+        //     (success, data) = appDiamond.call(abi.encodeWithSelector(bytes4(keccak256("checkApprovedERC20PerProjectByChain(string,uint256,address)")), projectIdforPathway[_pathwayId],block.chainid, _ERC20Address));
+        //     require(success);
+        //     success = abi.decode(data, (bool));
+        //     require(success, "ERC20 not approved");
+        //     IERC20(_ERC20Address).transferFrom(_msgSender(), appWallet, appPortion);
+        //     IERC20(_ERC20Address).transferFrom(_msgSender(), address(this), amount + creatorPortion);
+        //     IERC20(_ERC20Address).transfer(creator[_pathwayId], creatorPortion);
+        //     erc20Amounts[_pathwayId][_ERC20Address] += amount;
         projectWallets[_projectId] = _projectWallet;
         stakePerProject[_projectId] = stakeAmount;
         sponsorLevel[_projectId] = pendingSponsorLevel;
         status[_projectId]= ProjectStatus.PENDING;
-        if(msg.value > stakeAmount){
-            (success, ) = payable(_msgSender()).call{value : msg.value - stakeAmount}("");
-            require(success, "failed refund");
-        }
     }
 
     function changeProjectWallet(string memory _projectId, address newAddr) external {
