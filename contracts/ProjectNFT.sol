@@ -10,10 +10,13 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol"
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     using Counters for Counters.Counter;
+    using SafeERC20 for IERC20;
     
     Counters.Counter private _tokenIds;
     Counters.Counter private _multiSigRequest;
@@ -132,11 +135,12 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         }
     }
     
-    function createToken(uint32[] memory firstURIParts, uint256[] memory secondURIParts, string memory _projectId, uint[] memory versions, uint[] memory prices, uint[] memory maxCaps) public onlyReviewer returns(uint[] memory){
+    function createToken(uint32[] memory firstURIParts, uint256[] memory secondURIParts, string memory _projectId, uint[] memory versions, uint[] memory prices, uint[] memory maxCaps, address _ERC20AddressPool) public onlyReviewer returns(uint[] memory){
         require(status[_projectId] == ProjectStatus.APPROVED, "job not approved yet");
         require(!projectMinted[_projectId], "already minted");
         require(firstURIParts.length == secondURIParts.length && firstURIParts.length == contributors[_projectId].length, "incorrect arrs");
         require(versions.length > 0 && versions.length == prices.length && versions.length == maxCaps.length, "incorrect arrs");
+        require(_ERC20Address != address(0));
         //batch minting
         uint256[] memory newItems = new uint256[](contributors[_projectId].length);
         uint256 newItemId;
@@ -167,6 +171,15 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
             (success,) = adventurerSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("upsertAdventurerNFT(string,uint256,uint256,uint256)")), _projectId, versions[i], prices[i], maxCaps[i]));
             require(success, "adventurer mint failed");
         }
+
+        (success, data) = appDiamond.call(abi.encodeWithSelector(bytes4(keccak256("checkApprovedERC20PerProjectByChain(string,uint256,address)")), _projectId ,block.chainid, _ERC20AddressPool));
+        require(success);
+        success = abi.decode(data, (bool));
+        require(success, "ERC20 not approved");
+
+        //create pool here
+        (success, data) = apiConsumerAddr.call(abi.encodeWithSelector(bytes4(keccak256("requestPriceData(address,string)")), _ERC20AddressPool, _projectId));
+        require(success);
 
         return newItems;    
     }
