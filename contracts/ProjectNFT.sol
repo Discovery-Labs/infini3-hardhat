@@ -198,6 +198,14 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         status[_projectId]= ProjectStatus.PENDING;
     }
 
+    function addProjectERC20PoolFund(string memory _projectId, address _ERC20Address, uint256 amount) external onlyReviewer {
+        (bool success, bytes memory data) = appDiamond.call(abi.encodeWithSelector(bytes4(keccak256("checkApprovedERC20PerProjectByChain(string,uint256,address)")), _projectId, block.chainid, _ERC20Address));
+        require(success);
+        success = abi.decode(data, (bool));
+        require(success, "not approved ERC20Addr");
+        IERC20(_ERC20Address).transferFrom(_msgSender(), sponsorSFTAddr, amount);
+    }
+
     function changeProjectWallet(string memory _projectId, address newAddr) external {
         require(_msgSender() == sponsorSFTAddr, "ProjectNFT: wrong caller");
         require (projectWallets[_projectId] != address(0), "no project wallet");
