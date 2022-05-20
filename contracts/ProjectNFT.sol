@@ -25,7 +25,8 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     address payable public appWallet;//sign in a script and also withdraw slashed stakes
     address payable appDiamond;//address of the app level diamond
     address payable sponsorSFTAddr;//address of ERC1155 that controls sponsor staking
-    address public adventureSFTAddr;//address of ERC1155 that controls adventurer SFT
+    address public adventurerSFTAddr;//address of ERC1155 that controls adventurer SFT
+    address apiConsumerAddr;//address of chaninlink address
     enum ProjectStatus{ NONEXISTENT, PENDING, DENIED, APPROVED }
     
     mapping (string => address[]) internal contributors;
@@ -162,7 +163,7 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         require(success, "sponsor mint failed");
 
         //mint all adventurer SFT versions here
-        for(i=0; i< versions.length; i++){
+        for(uint i=0; i< versions.length; i++){
             (success,) = adventurerSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("upsertAdventurerNFT(string,uint256,uint256,uint256)")), _projectId, versions[i], prices[i], maxCaps[i]));
             require(success, "adventurer mint failed");
         }
@@ -368,8 +369,19 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         return sponsorSFTAddr;
     }
 
-    function setAdventureSFTAddr(address _adventureSFTAddr) external onlyReviewer{
-        require(_adventureSFTAddr != address(0));
-        adventureSFTAddr = _adventureSFTAddr;
+    function setAPIConsumerAddr(address _apiConsumerAddr) external onlyReviewer{
+        require(_apiConsumerAddr != address(0));
+        apiConsumerAddr = _apiConsumerAddr;
+        (bool success, ) = sponsorSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("setAPIConsumerAddr(address)")), _apiConsumerAddr));
+        require(success);
+    }
+
+    function getAPIConsumerAddr() external view returns(address){
+        return apiConsumerAddr;
+    }
+
+    function setAdventureSFTAddr(address _adventurerSFTAddr) external onlyReviewer{
+        require(_adventurerSFTAddr != address(0));
+        adventurerSFTAddr = _adventurerSFTAddr;
     }
 }

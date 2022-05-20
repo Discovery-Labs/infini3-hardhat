@@ -5,14 +5,14 @@ import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 
 contract APIConsumer is ChainlinkClient {
     using Chainlink for Chainlink.Request;
-  
-    uint256 public price;
     
     address projectNFTAddr;
+    address sponsorSFTAddr;
     address private oracle;
     bytes32 private jobId;
     uint256 private fee;
     mapping (bytes32 => string) projectPerRequestId;
+    mapping (string => uint256) pricePerProject;
     
     /**
      * Network: Kovan
@@ -21,7 +21,7 @@ contract APIConsumer is ChainlinkClient {
      * Job ID: d5270d1c311941d0b08bead21fea7747
      * Fee: 0.1 LINK
      */
-    constructor(address _projectNFTAddr) {
+    constructor(address _projectNFTAddr, address _sponsorSFTAddr) {
         setPublicChainlinkToken();
         oracle = 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8;
         jobId = "d5270d1c311941d0b08bead21fea7747";
@@ -57,8 +57,8 @@ contract APIConsumer is ChainlinkClient {
      */ 
     function fulfill(bytes32 _requestId, uint256 _price) public recordChainlinkFulfillment(_requestId)
     {
-        price = _price;
         string memory projectId = projectPerRequestId[_requestId];
+        pricePerProject[projectId] = _price;
         projectNFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("createPool")), arg));
     }
 

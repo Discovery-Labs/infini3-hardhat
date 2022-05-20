@@ -14,6 +14,7 @@ contract SponsorPassSFT is ERC1155 {
     uint256 public constant DIAMOND = 3;
     mapping (uint => uint) public stakeAmounts;
     address payable projectNFTAddr;//project NFT Address this will interact with
+    address apiConsumerAddr;//address of chaninlink address
     mapping (string => uint) levelByProject;//level of each project...needed in case a wallet, so can read level by project
     //mapping (address => uint) public isAddrOwner;//is address associated with project owner?
     mapping (string => address) public walletByProj;//wallet address for a project
@@ -93,5 +94,15 @@ contract SponsorPassSFT is ERC1155 {
         require(isReviewer, "not approved app reviewer");
         require (_tokenId >0 && _tokenId < DIAMOND + 1, "invalid _tokenId");
         stakeAmounts[_tokenId] = amount;
+    }
+
+    function setAPIConsumerAddr(address _apiConsumerAddr) external{
+        require(msg.sender == projectNFTAddr, "invalid contract setting API consumer Address");
+        require(_apiConsumerAddr != address(0));
+        apiConsumerAddr = _apiConsumerAddr;
+    }
+
+    function getAPIConsumerAddr() external view returns(address){
+        return apiConsumerAddr;
     }
 }
