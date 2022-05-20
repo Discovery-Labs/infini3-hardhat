@@ -48,13 +48,13 @@ contract AdventurerSFT is ERC1155, Ownable {
         uint256 _maxCap
     ) external{
         require(msg.sender == projectNFTAddr, "ADVENTURER_SFT: ONLY_PROJECT");
-        uint tokenId = optionTokenIdByProjectIdAndVersion[_projectId][version];
+        uint tokenId = optionTokenIdByProjectIdAndVersion[_projectId][_version];
         if(tokenId == 0){
             tokenIdCounter++;
             tokenId = tokenIdCounter;
             optionTokenIdByProjectIdAndVersion[_projectId][_version] = tokenId;
         }
-        AdventurerTokenInfo storage adventureTokenInfo = adventurerTokenInfoByTokenId[tokenId];
+        AdventurerTokenInfo storage adventurerTokenInfo = adventurerTokenInfoByTokenId[tokenId];
         adventurerTokenInfo.projectId = _projectId;
         adventurerTokenInfo.version = _version;
         adventurerTokenInfo.priceInDComp = _price;
@@ -67,7 +67,7 @@ contract AdventurerSFT is ERC1155, Ownable {
         uint256 _version
     ) external{
         require(msg.sender == projectNFTAddr, "ADVENTURER_SFT: ONLY_PROJECT");
-        uint tokenId = optionTokenIdByProjectIdAndVersion[_projectId][version];
+        uint tokenId = optionTokenIdByProjectIdAndVersion[_projectId][_version];
         require(tokenId > 0, "ADVENTURER_SFT: INVALID_TOKEN_ID");
         require(balanceOf(_to, tokenId) == 0, "ADVENTURER_SFT: DUPLICATE_MINT");
         uint currentSupply = totalSupplyPerTokenId[tokenId];
