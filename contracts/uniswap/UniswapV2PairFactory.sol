@@ -9,6 +9,7 @@ import "./interfaces/IUniswapV2PairFactory.sol";
 
 contract UniswapV2PairFactory is IUniswapV2PairFactory {
     address public uniswapV2PairImplementation;
+    address public projectNFTAddress;
     address public sponsorSFTAddress;
     address public dCompTokenAddress;
     address public override feeTo;
@@ -18,10 +19,11 @@ contract UniswapV2PairFactory is IUniswapV2PairFactory {
     mapping(string => address) public override getPoolByProject;
     address[] public override allPools;
 
-    constructor(address _uniswapV2PairImplementation, address _feeToSetter, address _sponsorSFTAddress, address _dCompTokenAddress) public {
-        require(_uniswapV2PairImplementation != address(0) && _sponsorSFTAddress!= address(0) && _dCompTokenAddress != address(0));
+    constructor(address _uniswapV2PairImplementation, address _feeToSetter, address _projectNFTAddress, address _sponsorSFTAddress, address _dCompTokenAddress) public {
+        require(_uniswapV2PairImplementation != address(0) && _projectNFTAddress != address(0) && _sponsorSFTAddress!= address(0) && _dCompTokenAddress != address(0));
         uniswapV2PairImplementation = _uniswapV2PairImplementation;
         feeToSetter = _feeToSetter;
+        projectNFTAddress = _projectNFTAddress;
         sponsorSFTAddress = _sponsorSFTAddress;
         dCompTokenAddress = _dCompTokenAddress;
     }
@@ -31,7 +33,7 @@ contract UniswapV2PairFactory is IUniswapV2PairFactory {
     }
 
     function createPair(address tokenB, string memory projectId) external override returns (address pair) {
-        require(msg.sender == sponsorSFTAddress, "UniswapDComp: ONLY_SPONSOR_SFT");
+        require(msg.sender == projectNFTAddress, "UniswapDComp: ONLY_PROJECT_NFT");
         require(tokenB != address(0), "UniswapDComp: ZERO_ADDRESS");
         address tokenA = dCompTokenAddress;
         require(tokenA != tokenB, "UniswapDComp: IDENTICAL_ADDRESSES");
@@ -39,7 +41,7 @@ contract UniswapV2PairFactory is IUniswapV2PairFactory {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, projectId));
         pair = Clones.cloneDeterministic(uniswapV2PairImplementation, salt);
-        IUniswapV2Pair(pair).initialize(sponsorSFTAddress, token0, token1, projectId);
+        IUniswapV2Pair(pair).initialize(projectNFTAddress, token0, token1, projectId);
         getPoolByProject[projectId] = pair;
         allPools.push(pair);
         emit PairCreated(token0, token1, pair, allPools.length);

@@ -20,8 +20,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("transfer(address,uint256)")));
 
     address public factory;
-    address public sponsorSFTAddress;
-    address public adventureNFTAddress;
+    address public projectNFTAddress;
+    address public adventurerSFTAddress;
     address public token0;
     address public token1;
     string public projectId;
@@ -70,18 +70,18 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _sponsorSFTAddress, address _token0, address _token1, string calldata _projectId) external initializer {
+    function initialize(address _projectNFTAddress, address _token0, address _token1, string calldata _projectId) external initializer {
         factory = msg.sender;
-        sponsorSFTAddress = _sponsorSFTAddress;
+        projectNFTAddress = _projectNFTAddress;
         //one of two tokens below should be dCompToken at time of deployment
         token0 = _token0;
         token1 = _token1;
         projectId = _projectId;
-        (bool success, bytes memory data) = sponsorSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("adventureNFTAddress()"))));
+        (bool success, bytes memory data) = projectNFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("adventurerSFTAddress()"))));
         require(success);
-        address _adventureNFTAddress = abi.decode(data, (address));
-        require(_adventureNFTAddress != address(0), "UniswapDComp: NO_ADVENTURE_ADDRESS");
-        adventureNFTAddress = _adventureNFTAddress;
+        address _adventurerSFTAddress = abi.decode(data, (address));
+        require(_adventurerSFTAddress != address(0), "UniswapDComp: NO_ADVENTURE_ADDRESS");
+        adventurerSFTAddress = _adventurerSFTAddress;
     }   
 
 
@@ -124,7 +124,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
-        (bool success, bytes memory data) = adventureNFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
+        (bool success, bytes memory data) = adventurerSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
         require(success, "UniswapDComp: UNSUCCESSFUL_CALL");
         success = abi.decode(data, (bool));
         require(success, "UniswapDComp: NOT_PROJECT_HOLDER");

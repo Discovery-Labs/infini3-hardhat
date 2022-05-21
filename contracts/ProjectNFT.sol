@@ -11,8 +11,9 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol"
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IUniswapV2PairFactory} from "./uniswap/interfaces/IUniswapV2PairFactory.sol";
 
 contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     using Counters for Counters.Counter;
@@ -30,6 +31,7 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     address payable sponsorSFTAddr;//address of ERC1155 that controls sponsor staking
     address public adventurerSFTAddr;//address of ERC1155 that controls adventurer SFT
     address apiConsumerAddr;//address of chaninlink address
+    address factoryAddr;//address of the UniswapV2 Factory
     enum ProjectStatus{ NONEXISTENT, PENDING, DENIED, APPROVED }
     
     mapping (string => address[]) internal contributors;
@@ -140,11 +142,12 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         require(!projectMinted[_projectId], "already minted");
         require(firstURIParts.length == secondURIParts.length && firstURIParts.length == contributors[_projectId].length, "incorrect arrs");
         require(versions.length > 0 && versions.length == prices.length && versions.length == maxCaps.length, "incorrect arrs");
-        require(_ERC20Address != address(0));
+        require(_ERC20AddressPool != address(0));
         //batch minting
         uint256[] memory newItems = new uint256[](contributors[_projectId].length);
         uint256 newItemId;
         string memory _tokenURI;
+        bytes memory data;
 
         for(uint i =0; i< contributors[_projectId].length; i++){
         _tokenIds.increment();
@@ -163,7 +166,7 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         require(success, "diamond approval failed");
 
         //mint SFT here
-        (success,) = sponsorSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("mint(uint256,address,string)")), sponsorLevel[_projectId], projectWallets[_projectId], _projectId));
+        (success, ) = sponsorSFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("mint(uint256,address,string)")), sponsorLevel[_projectId], projectWallets[_projectId], _projectId));
         require(success, "sponsor mint failed");
 
         //mint all adventurer SFT versions here
@@ -178,7 +181,9 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         require(success, "ERC20 not approved");
 
         //create pool here
-        (success, data) = apiConsumerAddr.call(abi.encodeWithSelector(bytes4(keccak256("requestPriceData(address,string)")), _ERC20AddressPool, _projectId));
+        IUniswapV2PairFactory(factoryAddr).createPair(_ERC20AddressPool, _projectId);
+
+        (success, ) = apiConsumerAddr.call(abi.encodeWithSelector(bytes4(keccak256("requestPriceData(address,string)")), _ERC20AddressPool, _projectId));
         require(success);
 
         return newItems;    

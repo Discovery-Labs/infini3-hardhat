@@ -56,9 +56,9 @@ contract AdventurerSFT is ERC1155, Ownable {
         }
         AdventurerTokenInfo storage adventurerTokenInfo = adventurerTokenInfoByTokenId[tokenId];
         adventurerTokenInfo.projectId = _projectId;
-        adventurerTokenInfo.version = _version;
-        adventurerTokenInfo.priceInDComp = _price;
-        adventurerTokenInfo.maximumCap = _maxCap;
+        adventurerTokenInfo.version = uint32(_version);
+        adventurerTokenInfo.priceInDComp = uint112(_price);
+        adventurerTokenInfo.maximumCap = uint112(_maxCap);
     }
 
     function mint(
