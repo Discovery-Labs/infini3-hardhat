@@ -64,7 +64,6 @@ contract APIConsumer is ChainlinkClient {
         pricePerProject[projectId] = _price;
         (bool success, ) = projectNFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("addInitLiquidity(string,uint256)")), projectId, _price));
         require(success);
-        //callback add initial liquidity instead of create pool?
     }
 
     // function withdrawLink() external onlyOwner{

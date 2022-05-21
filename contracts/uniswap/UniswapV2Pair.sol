@@ -69,6 +69,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
         factory = address(0xdead);
     }
 
+    modifier ensure(uint deadline) {
+        require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
+        _;
+    }
+
     // called once by the factory at time of deployment
     function initialize(address _projectNFTAddress, address _token0, address _token1, string calldata _projectId) external initializer {
         factory = msg.sender;
@@ -123,11 +128,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) external lock returns (uint liquidity) {
-        (bool success, bytes memory data) = adventurerSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
-        require(success, "UniswapDComp: UNSUCCESSFUL_CALL");
-        success = abi.decode(data, (bool));
-        require(success, "UniswapDComp: NOT_PROJECT_HOLDER");
+    function mint(address to) internal lock returns (uint liquidity) {
+        // (bool success, bytes memory data) = adventurerSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
+        // require(success, "UniswapDComp: UNSUCCESSFUL_CALL");
+        // success = abi.decode(data, (bool));
+        // require(success, "UniswapDComp: NOT_PROJECT_HOLDER");
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
@@ -217,5 +222,65 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     // force reserves to match balances
     function sync() external lock {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
+    }
+
+    // **** ADD LIQUIDITY ****
+    function _addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin
+    ) internal virtual returns (uint amountA, uint amountB) {
+        (uint reserveA, uint reserveB) = getReserves();
+        if (reserveA == 0 && reserveB == 0) {
+            (amountA, amountB) = (amountADesired, amountBDesired);
+        } else {
+            uint amountBOptimal = quote(amountADesired, reserveA, reserveB);
+            if (amountBOptimal <= amountBDesired) {
+                require(amountBOptimal >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
+                (amountA, amountB) = (amountADesired, amountBOptimal);
+            } else {
+                uint amountAOptimal = quote(amountBDesired, reserveB, reserveA);
+                assert(amountAOptimal <= amountADesired);
+                require(amountAOptimal >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
+                (amountA, amountB) = (amountAOptimal, amountBDesired);
+            }
+        }
+    }
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external virtual override ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
+        if(!firstLiquidityAdded){
+            require(msg.sender == projectNFTAddress);
+            firstLiquidityAdded = true;
+        }
+        else{
+            (bool success, bytes memory data) = adventurerSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
+            require(success, "UniswapDComp: UNSUCCESSFUL_CALL");
+            success = abi.decode(data, (bool));
+            require(success, "UniswapDComp: NOT_PROJECT_HOLDER");
+        }
+        (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
+        address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
+        TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
+        TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        liquidity = mint(to);
+
+    }
+
+    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+    function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
+        require(amountA > 0, 'UniswapV2Library: INSUFFICIENT_AMOUNT');
+        require(reserveA > 0 && reserveB > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
+        amountB = amountA.mul(reserveB) / reserveA;
     }
 }
