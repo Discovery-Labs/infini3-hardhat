@@ -32,6 +32,7 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     address public adventurerSFTAddr;//address of ERC1155 that controls adventurer SFT
     address apiConsumerAddr;//address of chaninlink address
     address factoryAddr;//address of the UniswapV2 Factory
+    address dCompTokenAddr;//address of DCompToken
     enum ProjectStatus{ NONEXISTENT, PENDING, DENIED, APPROVED }
     
     mapping (string => address[]) internal contributors;
@@ -48,7 +49,8 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     mapping (string => mapping(address => bool)) public reviewerVotes;//vote record of reviewers for ProjectId
     mapping (string => bool) public projectMinted; // tracks if mint has been done
     mapping (string => uint) public projectThresholds;// threshold for the project contributors to approve pathways
-    
+    mapping (string => address) public erc20PoolTokenPerProjectId;//erc20 address used to make pool for projectID
+
     event NFTProjectMinted(address indexed _to, string indexed _tokenURI, string indexed _questId);
     event ReceiveCalled(address _caller, uint _value);
     event ProjectApproved(string indexed _projectId);
@@ -160,6 +162,8 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         emit NFTProjectMinted(contributors[_projectId][i], _tokenURI, _projectId);
         }
         projectMinted[_projectId] = true;
+
+        erc20PoolTokenPerProjectId[_projectId] = _ERC20AddressPool;
 
         //set the approval within app Diamond contract
         (bool success, ) = appDiamond.call(abi.encodeWithSelector(bytes4(keccak256("setApproved(string)")), _projectId));
@@ -295,6 +299,26 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
         // sponsorLevel[_projectId] = newSponsorLevel;
     }
 
+    function addInitLiquidity(string memory _projectId, uint256 prices) external {
+        require(msg.sender == apiConsumerAddr, "only api consumer");
+        address erc20PoolToken = erc20PoolTokenPerProjectId[_projectId];
+        uint256 ethPriceOfPoolToken = (prices % 100000000);
+        uint256 halfAmountForPool = stakePerProject[_projectId]/(2*ethPriceOfPoolToken);
+        uint256 amountOfDCompToken = halfAmountForPool*(prices/1000000000);
+
+        (bool success, ) = dCompTokenAddr.call(abi.encodeWithSelector(bytes4(keccak256("mint(address,uint256,string)")), address(this), amountOfDCompToken, _projectId));
+        require(success);
+
+        IERC20(erc20PoolToken).transferFrom(projectWallets[_projectId], address(this), halfAmountForPool);
+
+        //get pool address
+        //add init liquidity to pool...
+
+        //sending half pledge back to user to pay for his share of ERC20 tokens
+        (success, ) = payable(projectWallets[_projectId]).call{value : stakePerProject[_projectId]/2}("");
+        require(success);
+    }
+
     function addReviewer(address _reviewer) public onlyReviewer {
         require (!reviewers[_reviewer], "already reviewer");
         reviewers[_reviewer]=true;
@@ -396,6 +420,15 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
 
     function getAPIConsumerAddr() external view returns(address){
         return apiConsumerAddr;
+    }
+
+    function setdCompTokenAddr(address _dCompTokenAddr) external onlyReviewer{
+        require(_dCompTokenAddr != address(0));
+        dCompTokenAddr = _dCompTokenAddr;
+    }
+
+    function getdCompTokenAddr() external view returns(address){
+        return dCompTokenAddr;
     }
 
     function setAdventureSFTAddr(address _adventurerSFTAddr) external onlyReviewer{

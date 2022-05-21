@@ -59,7 +59,8 @@ contract APIConsumer is ChainlinkClient {
     {
         string memory projectId = projectPerRequestId[_requestId];
         pricePerProject[projectId] = _price;
-        projectNFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("createPool")), arg));
+        (bool success, ) = projectNFTAddr.call(abi.encodeWithSelector(bytes4(keccak256("addInitLiquidity(string,uint256)")), projectId, _price));
+        require(success);
         //callback add initial liquidity instead of create pool?
     }
 

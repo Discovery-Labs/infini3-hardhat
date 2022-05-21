@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @title TestToken
  **/
 
-contract DCompToken is ERC20, Ownable {
+contract DCompToken is ERC20{
     address public owner;
     address public projectNFTAddress;
     mapping (address => bool) public approvedMinters;
@@ -23,6 +23,11 @@ contract DCompToken is ERC20, Ownable {
     function mint(address to, uint256 amount, string memory _projectId) external {
         require(msg.sender == projectNFTAddress, "DCOMPTOKEN: ONLY_PROJECTNFT");
         projectBalance[_projectId] += amount;
+        _mint(to, amount);
+    }
+
+    function mintIndividuals(address to, uint256 amount) external {
+        require(msg.sender == projectNFTAddress, "DCOMPTOKEN: ONLY_PROJECTNFT");
         _mint(to, amount);
     }
 }
