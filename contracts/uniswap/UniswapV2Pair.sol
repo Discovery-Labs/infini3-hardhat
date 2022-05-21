@@ -25,6 +25,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     address public token0;
     address public token1;
     string public projectId;
+    bool public firstLiquidityAdded;
 
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
@@ -128,7 +129,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) internal lock returns (uint liquidity) {
+    function mint(address to) public lock returns (uint liquidity) {
         // (bool success, bytes memory data) = adventurerSFTAddress.call(abi.encodeWithSelector(bytes4(keccak256("completionCheck(address,string)")), msg.sender, projectId));
         // require(success, "UniswapDComp: UNSUCCESSFUL_CALL");
         // success = abi.decode(data, (bool));
@@ -232,8 +233,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
         uint amountBDesired,
         uint amountAMin,
         uint amountBMin
-    ) internal virtual returns (uint amountA, uint amountB) {
-        (uint reserveA, uint reserveB) = getReserves();
+    ) internal returns (uint amountA, uint amountB) {
+        (uint reserveA, uint reserveB, ) = getReserves();
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
@@ -258,7 +259,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
         uint amountBMin,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
+    ) external ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
         if(!firstLiquidityAdded){
             require(msg.sender == projectNFTAddress);
             firstLiquidityAdded = true;
@@ -270,9 +271,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, Initializable {
             require(success, "UniswapDComp: NOT_PROJECT_HOLDER");
         }
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
-        TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
-        TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        // TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
+        // TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
         liquidity = mint(to);
 
     }
