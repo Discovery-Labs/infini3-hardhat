@@ -84,7 +84,8 @@ const config: HardhatUserConfig = {
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_KEY}`, // <---- YOUR INFURA ID! (or it won't work)
-      accounts: {
+      accounts: //[`${DEPLOYER_PRIVATE_KEY}`]
+      {
         mnemonic: getMnemonic(),
       },
     },
