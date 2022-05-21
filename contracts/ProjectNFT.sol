@@ -430,6 +430,15 @@ contract ProjectNFT is ERC721URIStorage, Ownable, ReentrancyGuard{
     function getdCompTokenAddr() external view returns(address){
         return dCompTokenAddr;
     }
+    
+    function setFactoryAddr(address _factoryAddr) external onlyReviewer {
+        require(_factoryAddr != address(0));
+        factoryAddr = _factoryAddr;
+    }
+
+    function getFactoryAddr() external view returns (address) {
+        return factoryAddr;
+    }
 
     function setAdventureSFTAddr(address _adventurerSFTAddr) external onlyReviewer{
         require(_adventurerSFTAddr != address(0));
