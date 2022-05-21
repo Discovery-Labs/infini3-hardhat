@@ -21,6 +21,7 @@
     "hardhat-etherscan": "hardhat verify --network kovan DEPLOYED_CONTRACT_ADDRESS \"Constructor argument 1\" "
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.4.1",
     "@eth-optimism/hardhat-ovm": "^0.2.2",
     "@ethereumjs/vm": "^5.5.3",
     "@ethersproject/providers": "^5.4.1",
@@ -30,13 +31,16 @@
     "@tenderly/hardhat-tenderly": "^1.0.10",
     "@typechain/ethers-v5": "^8.0.5",
     "@typechain/hardhat": "^3.0.0",
+    "@uniswap/v2-core": "^1.0.1",
     "chalk": "^4.1.1",
     "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.1",
     "hardhat": "^2.4.0",
+    "hardhat-contract-sizer": "^2.5.1",
     "hardhat-deploy": "^0.9.14",
     "hardhat-deploy-ethers": "^0.3.0-beta.10",
+    "hardhat-gas-reporter": "^1.0.8",
     "qrcode-terminal": "^0.12.0",
     "typechain": "^6.0.5"
   },
