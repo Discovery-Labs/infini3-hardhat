@@ -5,3 +5,5 @@ mnemonic.secret
 #Hardhat files
 cache
 artifacts
+
+deployments
