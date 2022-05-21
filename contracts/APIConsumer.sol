@@ -47,9 +47,12 @@ contract APIConsumer is ChainlinkClient {
         // int timesAmount = 10**2;
         // request.addInt("times", timesAmount);
 
-        projectPerRequestId[request] = projectId;        
         // Sends the request
-        return sendChainlinkRequestTo(oracle, request, fee);
+        requestId = sendChainlinkRequestTo(oracle, request, fee);
+        
+        projectPerRequestId[requestId] = projectId;        
+        // Sends the request
+        return requestId;
     }
     
     /**
