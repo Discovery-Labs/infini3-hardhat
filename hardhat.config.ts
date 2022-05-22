@@ -48,10 +48,14 @@ const getMnemonic = () => {
   return '';
 };
 
-const { INFURA_KEY } = process.env;
+const { INFURA_KEY, DEPLOYER_PRIVATE_KEY } = process.env;
 
 if (!INFURA_KEY) {
   throw new Error('No value found for INFURA_KEY in .env');
+}
+
+if (!DEPLOYER_PRIVATE_KEY) {
+  throw new Error('No value found for DEPLOYER_PRIVATE_KEY in .env');
 }
 const config: HardhatUserConfig = {
   defaultNetwork,
@@ -78,14 +82,12 @@ const config: HardhatUserConfig = {
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`, // <---- YOUR INFURA ID! (or it won't work)
-      accounts: {
-        mnemonic: getMnemonic(),
-      },
+      accounts: [DEPLOYER_PRIVATE_KEY],
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_KEY}`, // <---- YOUR INFURA ID! (or it won't work)
-      accounts: //[`${DEPLOYER_PRIVATE_KEY}`]
-      {
+      //[`${DEPLOYER_PRIVATE_KEY}`]
+      accounts: {
         mnemonic: getMnemonic(),
       },
     },

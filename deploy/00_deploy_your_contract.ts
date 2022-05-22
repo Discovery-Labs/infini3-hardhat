@@ -7,8 +7,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   //use env? if not using pathway or Badge then server address can go since only needed for verify
-  const DEV_ADDRESS = "0xA072f8Bd3847E21C8EdaAf38D7425631a2A63631";
-  const SERVER_ADDRESS = "0xA072f8Bd3847E21C8EdaAf38D7425631a2A63631";
+  const DEV_ADDRESS = "0x5D9f534E380E541a63a7dF62547e199A0f7489b5";
+  const SERVER_ADDRESS = "0x5D9f534E380E541a63a7dF62547e199A0f7489b5";
 
   const NFTeeContract = await deploy('NFTee', {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
@@ -121,8 +121,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     from: deployer,
     args: [
       project.address,
-      pathway.address,
-      verify.address,
       sponsorSFT.address,
       SERVER_ADDRESS,
     ],
